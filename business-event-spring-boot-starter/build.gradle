@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.event.trace'
+version = '1.0.0'
+
+archivesBaseName = 'business-event-spring-boot-starter'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':business-event-core')
+
+    implementation "org.springframework.boot:spring-boot-starter-web:2.7.10"
+    implementation 'org.aspectj:aspectjrt:1.9.20.1'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation("org.aspectj:aspectjweaver:1.9.25")
+}

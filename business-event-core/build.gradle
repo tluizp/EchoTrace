@@ -1,0 +1,8 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.event.trace'
+version = '1.0.0'
+
+archivesBaseName = 'business-event-core'

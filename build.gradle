@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'com.event.trace'
+    version = '1.0.0'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}

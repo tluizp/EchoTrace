@@ -1,0 +1,4 @@
+rootProject.name = 'business-event-trace'
+
+include 'business-event-core'
+include 'business-event-spring-boot-starter'
