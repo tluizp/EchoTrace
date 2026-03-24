@@ -38,7 +38,8 @@ Sem complexidade.
 Adicione a dependência:
 
 ```gradle
-implementation 'com.event.trace:business-event-spring-boot-starter:1.0.0'
+    implementation 'com.event.trace:business-event-core:1.0.0'
+    implementation 'com.event.trace:business-event-spring-boot-starter:1.0.0'
 ```
 
 Anote seu método:
