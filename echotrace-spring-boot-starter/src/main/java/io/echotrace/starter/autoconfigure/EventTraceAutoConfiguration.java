@@ -21,7 +21,7 @@ public class EventTraceAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "event.trace",
+            prefix = "echotrace",
             name = "collector-url"
     )
     @ConditionalOnMissingBean(EventPublisher.class)

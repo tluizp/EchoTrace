@@ -2,7 +2,7 @@ package io.echotrace.starter.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "event.trace")
+@ConfigurationProperties(prefix = "echotrace")
 public class TelemetryProperties {
 
     private String collectorUrl;

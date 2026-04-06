@@ -1,4 +1,4 @@
-# 🚀 Business Event Trace
+# 🚀 EchoTrace
 
 > **Pare de observar apenas o sistema. Comece a observar o seu negócio.**
 
@@ -25,7 +25,7 @@ Mas não sabe responder:
 
 ## 💡 A solução
 
-O **Business Event Trace** transforma qualquer método da sua aplicação em um **evento de negócio estruturado** — automaticamente.
+O **EchoTrace** transforma qualquer método da sua aplicação em um **evento de negócio estruturado** — automaticamente.
 
 Sem acoplamento.
 Sem dependência de infra.
@@ -38,14 +38,14 @@ Sem complexidade.
 Adicione a dependência:
 
 ```gradle
-    implementation 'com.event.trace:business-event-core:1.0.0'
-    implementation 'com.event.trace:business-event-spring-boot-starter:1.0.0'
+    implementation 'io.echotrace:echotrace-core:1.0.0'
+    implementation 'io.echotrace:echotrace-spring-boot-starter:1.0.0'
 ```
 
 Anote seu método:
 
 ```java
-@BusinessEvent("pedido.criado")
+@EchoTrace("pedido.criado")
 public Pedido criarPedido(PedidoRequest request) {
     return service.criar(request);
 }

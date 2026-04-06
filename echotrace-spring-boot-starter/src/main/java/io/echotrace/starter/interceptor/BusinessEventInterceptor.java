@@ -1,6 +1,6 @@
 package io.echotrace.starter.interceptor;
 
-import io.echotrace.annotation.BusinessEvent;
+import io.echotrace.annotation.EchoTrace;
 import io.echotrace.core.EventPublisher;
 import io.echotrace.model.EventPayload;
 import io.echotrace.telemetry.Telemetry;
@@ -36,7 +36,7 @@ public class BusinessEventInterceptor {
     }
 
     @Around("@annotation(event)")
-    public Object intercept(ProceedingJoinPoint pjp, BusinessEvent event) throws Throwable {
+    public Object intercept(ProceedingJoinPoint pjp, EchoTrace event) throws Throwable {
 
         long start = System.nanoTime();
         Object result = null;

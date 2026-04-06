@@ -20,7 +20,7 @@ public class AsyncHttpEventPublisher implements EventPublisher {
 
     public AsyncHttpEventPublisher(TelemetryProperties props) {
         if (props.getCollectorUrl() == null) {
-            throw new IllegalStateException("event.trace must be configured");
+            throw new IllegalStateException("echotrace.collector-url must be configured");
         }
         this.collectorUrl = props.getCollectorUrl();
         this.client = HttpClient.newHttpClient();
