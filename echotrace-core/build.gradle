@@ -1,0 +1,6 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'io.echotrace'
+version = '1.0.0'

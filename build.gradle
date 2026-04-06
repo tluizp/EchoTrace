@@ -3,7 +3,7 @@ plugins {
 }
 
 allprojects {
-    group = 'com.event.trace'
+    group = 'io.echotrace'
     version = '1.0.0'
 
     repositories {
