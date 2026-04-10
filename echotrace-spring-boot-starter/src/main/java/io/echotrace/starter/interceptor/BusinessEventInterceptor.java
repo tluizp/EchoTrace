@@ -96,7 +96,7 @@ public class BusinessEventInterceptor {
                 Telemetry.setSpanId(spanId);
 
                 EventPayload payload = new EventPayload(
-                        event.value(),
+                        event.name(),
                         duration,
                         traceId,
                         spanId,

@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
 }
 
 group = 'io.echotrace'
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':echotrace-core')
+    api project(':echotrace-core')
 
     implementation "org.springframework.boot:spring-boot-starter-web:2.7.10"
     implementation 'org.aspectj:aspectjrt:1.9.20.1'

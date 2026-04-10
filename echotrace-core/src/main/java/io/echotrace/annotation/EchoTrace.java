@@ -12,7 +12,7 @@ public @interface EchoTrace {
     /**
      * Nome do evento de negócio.
      */
-    String value();
+    String name();
 
     /**
      * Lista de expressões para capturar automaticamente dados do método.
