@@ -42,20 +42,20 @@ O **EchoTrace** transforma qualquer método da sua aplicação em um **evento de
 
 Adicione a dependência:
 
-GRADLE
+### GRADLE
 ```gradle
-    implementation 'io.echotrace:echotrace-spring-boot-starter:1.0.0'
+implementation 'io.echotrace:echotrace-spring-boot-starter:1.0.0'
 ```
 
-MAVEN
+### MAVEN
 ```xml
-    <dependency>
-        <groupId>io.echotrace</groupId>
-        <artifactId>echotrace-spring-boot-starter</artifactId>
-        <version>1.0.0</version>
-    </dependency>
+<dependency>
+    <groupId>io.echotrace</groupId>
+    <artifactId>echotrace-spring-boot-starter</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
-Anote seu método:
+### Anote seu método:
 
 ```java
 @EchoTrace(name = "criacao_pedido", capture={"request.cpf"}, captureReturn = true)
@@ -64,15 +64,35 @@ public Pedido criarPedido(PedidoRequest request) {
 }
 ```
 
+### Caso queira enriquecer com mais informações
+#### Utilize o Telemetry.capture()
+
+```java
+import io.echotrace.telemetry.Telemetry;
+
+@EchoTrace(name = "pedido.request", capture={"pedido.id"}, captureReturn = true)
+public PedidoResponse criarPedido(@RequestBody PedidoRequest pedido) {
+    Telemetry.capture("valor_gasto", pedido.getValor());
+
+    PedidoResponse pedidoResponse = new PedidoResponse();
+    pedidoResponse.setStatus("EM ANDAMENTO");
+    pedidoResponse.setHorarioExpectativaEntrega("19:30");
+
+    Telemetry.capture("expectativa_entrega", pedidoResponse.getHorarioExpectativaEntrega());
+
+    return pedidoResponse;
+}
+```
+
 Pronto.
 
-👉 Você já está gerando eventos.
+#### 👉 Você já está gerando eventos.
 
 ---
 
 ## 📦 O que é gerado
 
-Caso de sucesso
+### Caso de sucesso
 ```json
 {
   "event": "criacao_pedido",
@@ -80,7 +100,7 @@ Caso de sucesso
   "durationMs": 8,
   "metadata": {
     "class": "PedidoService",
-    "method": "criarPedido",
+    "method": "PedidoService.criarPedido(..)",
     "methodReturn": {"pix": "Teste12345"},
     "request.cpf": "123.456.789-01"
   },
@@ -89,7 +109,29 @@ Caso de sucesso
 }
 ```
 
-Caso de falha
+### Caso de enriquecimento de evento
+```json
+{
+  "event": "pedido.request",
+  "timestamp": "2026-04-11T13:45:36.786129Z",
+  "durationMs": 1888,
+  "metadata": {
+    "expectativa_entrega": "19:30",
+    "class": "PedidoService",
+    "method": "PedidoService.criarPedido(..)",
+    "valor_gasto": 75.87,
+    "pedido.id": "A12VDf4SDfds5",
+    "methodReturn": {
+      "status": "EM ANDAMENTO",
+      "horarioExpectativaEntrega": "19:30"
+    }
+  },
+  "traceId": "f8d088d7-cb83-49a1-949b-7cb3b65710dc",
+  "spanId": "8e26b77c-1fbc-46cf-b0d1-99fc827d614d"
+}
+```
+
+### Caso de falha
 ```json
 {
   "event": "criacao_pedido",
