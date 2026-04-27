@@ -1,11 +1,14 @@
 package io.echotrace.model;
 
+import org.springframework.core.env.Environment;
+
 import java.time.Instant;
 import java.util.Map;
 
 public class EventPayload {
 
-    private final String event;
+    private final String eventName;
+    private final String environment;
     private final Instant timestamp;
     private final long durationMs;
     private final Map<String, Object> metadata;
@@ -15,12 +18,14 @@ public class EventPayload {
 
     public EventPayload(
             String event,
+            String environment,
             long durationMs,
             String traceId,
             String spanId,
             Map<String, Object> metadata
     ) {
-        this.event = event;
+        this.eventName = event;
+        this.environment = environment;
         this.traceId = traceId;
         this.spanId = spanId;
         this.timestamp = Instant.now();
@@ -28,7 +33,8 @@ public class EventPayload {
         this.metadata = Map.copyOf(metadata);
     }
 
-    public String getEvent() { return event; }
+    public String getEventName() { return eventName; }
+    public String getEnvironment() { return environment; }
     public Instant getTimestamp() { return timestamp; }
     public long getDurationMs() {return durationMs;}
     public Map<String, Object> getMetadata() { return metadata; }
@@ -38,7 +44,8 @@ public class EventPayload {
     @Override
     public String toString() {
         return "EventPayload{" +
-                "event='" + event + '\'' +
+                "eventName='" + eventName + '\'' +
+                ", environment='" + environment + '\'' +
                 ", timestamp=" + timestamp +
                 ", durationMs=" + durationMs +
                 ", metadata=" + metadata +

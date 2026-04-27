@@ -12,10 +12,22 @@ repositories {
 }
 
 dependencies {
+    def springBootVersion = "2.7.10"
+
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
     api project(':echotrace-core')
 
-    implementation "org.springframework.boot:spring-boot-starter-web:2.7.10"
-    implementation 'org.aspectj:aspectjrt:1.9.20.1'
-    implementation 'org.springframework.boot:spring-boot-autoconfigure'
-    implementation("org.aspectj:aspectjweaver:1.9.25")
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
+
+test {
+    useJUnitPlatform()
 }

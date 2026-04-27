@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * Marca um método para ser monitorado pelo EchoTrace.
- * * <p>Ao anotar um método, o EchoTrace intercepta a execução para gerar um
+ * <p>Ao anotar um método, o EchoTrace intercepta a execução para gerar um
  * evento de negócio estruturado, capturando metadados, parâmetros e o retorno.</p>
  *
  * <pre>
@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * public void process(OrderRequest request) { ... }
  * </pre>
  *
- * @author Tiago Luiz
+ * @author Tiago Luiz Pinto
  * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -33,7 +33,7 @@ public @interface EchoTrace {
     /**
      * Define quais campos dos argumentos do método devem ser extraídos.
      * <p>Suporta notação de pontos para acessar objetos aninhados (ex: {@code order.customer.id}).</p>
-     * * @return um array de expressões de captura (SpEL ou reflexão simples).
+     * @return um array de expressões de captura (SpEL ou reflexão simples).
      */
     String[] capture() default {};
 

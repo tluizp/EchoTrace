@@ -16,31 +16,35 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Aspect
-public class BusinessEventInterceptor {
+public class EchoTraceInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(BusinessEventInterceptor.class);
+    private static final Logger log = LoggerFactory.getLogger(EchoTraceInterceptor.class);
 
     private static final Map<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
 
     private final EventPublisher publisher;
 
-    public BusinessEventInterceptor(EventPublisher publisher) {
+    public EchoTraceInterceptor(EventPublisher publisher) {
         this.publisher = publisher;
     }
 
     @Around("@annotation(event)")
     public Object intercept(ProceedingJoinPoint pjp, EchoTrace event) throws Throwable {
 
+        Telemetry.Scope scope = Telemetry.beginScope();
         long start = System.nanoTime();
         Object result = null;
         Throwable error = null;
+
+        // garante IDs antes de executar o metodo para suportar capturas manuais dentro dele
+        String traceId = Telemetry.ensureTraceId();
+        String spanId = Telemetry.startSpan();
 
         try {
             result = pjp.proceed();
@@ -85,18 +89,10 @@ public class BusinessEventInterceptor {
                     );
                 }
 
-                String traceId = Telemetry.getTraceId();
-
-                if (traceId == null) {
-                    traceId = UUID.randomUUID().toString();
-                    Telemetry.setTraceId(traceId);
-                }
-
-                String spanId = UUID.randomUUID().toString();
-                Telemetry.setSpanId(spanId);
-
+                //TODO ->>> "Feature futura para ambiente"
                 EventPayload payload = new EventPayload(
                         event.name(),
+                        "local",
                         duration,
                         traceId,
                         spanId,
@@ -106,7 +102,10 @@ public class BusinessEventInterceptor {
                 publisher.publish(payload);
 
             } catch (Exception telemetryError) {
-                log.error("[BusinessEvent] Telemetry failure", telemetryError);
+                log.error("[EchoTrace] Telemetry failure", telemetryError);
+            } finally {
+                Telemetry.endSpan();
+                scope.close();
             }
         }
     }
@@ -121,9 +120,16 @@ public class BusinessEventInterceptor {
         String[] argNames = sig.getParameterNames();
         Object[] argValues = pjp.getArgs();
 
-        Map<String, Object> argMap = IntStream.range(0, argNames.length)
+        if (argNames == null || argNames.length != argValues.length) {
+            argNames = IntStream.range(0, argValues.length)
+                    .mapToObj(i -> "arg" + i)
+                    .toArray(String[]::new);
+        }
+
+        final String[] effectiveArgNames = argNames;
+        Map<String, Object> argMap = IntStream.range(0, effectiveArgNames.length)
                 .boxed()
-                .collect(Collectors.toMap(i -> argNames[i], i -> argValues[i]));
+                .collect(Collectors.toMap(i -> effectiveArgNames[i], i -> argValues[i]));
 
         Map<String, Object> result = new HashMap<>();
 
@@ -140,17 +146,39 @@ public class BusinessEventInterceptor {
                 String fieldPath = path.substring(dotIndex + 1);
 
                 Object rootObj = argMap.get(rootName);
+                if (rootObj == null) {
+                    Integer index = parseArgIndex(rootName);
+                    if (index != null && index >= 0 && index < argValues.length) {
+                        rootObj = argValues[index];
+                    }
+                }
+                if (rootObj == null && argValues.length == 1) {
+                    // fallback pragmatico: metodos com 1 argumento sao comuns e o nome pode nao estar disponivel
+                    rootObj = argValues[0];
+                }
                 if (rootObj == null) continue;
 
                 Object value = resolveFieldPath(rootObj, fieldPath);
                 result.put(path, value);
 
             } catch (Exception exception) {
-                log.error("[BusinessEvent] Failed to capture path: {}", path, exception);
+                log.error("[EchoTrace] Failed to capture path: {}", path, exception);
             }
         }
 
         return result;
+    }
+
+    private Integer parseArgIndex(String rootName) {
+        try {
+            if (rootName == null || rootName.isBlank()) return null;
+            if (rootName.matches("^\\d+$")) return Integer.parseInt(rootName);
+            if (rootName.startsWith("arg") && rootName.length() > 3) return Integer.parseInt(rootName.substring(3));
+            if (rootName.startsWith("p") && rootName.length() > 1) return Integer.parseInt(rootName.substring(1));
+            return null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private Object resolveFieldPath(Object root, String path) throws Exception {
@@ -191,7 +219,7 @@ public class BusinessEventInterceptor {
         try {
             return String.valueOf(obj);
         } catch (Exception e) {
-            log.error("[BusinessEvent] Serialization error: ", e);
+            log.error("[EchoTrace] Serialization error: ", e);
             return "serialization_error";
         }
     }
