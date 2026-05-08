@@ -13,6 +13,15 @@ public class EventPayload {
     private final String traceId;
     private final String spanId;
 
+    private EventPayload() {
+        this.event = null;
+        this.timestamp = null;
+        this.durationMs = 0;
+        this.metadata = null;
+        this.traceId = null;
+        this.spanId = null;
+    }
+
     public EventPayload(
             String event,
             long durationMs,
@@ -25,7 +34,7 @@ public class EventPayload {
         this.spanId = spanId;
         this.timestamp = Instant.now();
         this.durationMs = durationMs;
-        this.metadata = Map.copyOf(metadata);
+        this.metadata = (metadata != null) ? Map.copyOf(metadata) : Map.of();
     }
 
     public String getEvent() { return event; }
