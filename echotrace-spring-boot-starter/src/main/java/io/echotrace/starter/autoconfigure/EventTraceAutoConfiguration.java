@@ -5,6 +5,7 @@ import io.echotrace.starter.publisher.AsyncHttpEventPublisher;
 import io.echotrace.starter.publisher.LogEventPublisher;
 import io.echotrace.core.EventPublisher;
 import io.echotrace.starter.interceptor.BusinessEventInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,8 +39,18 @@ public class EventTraceAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(EventPublisher.class)
-    public BusinessEventInterceptor businessEventInterceptor(EventPublisher publisher) {
-        return new BusinessEventInterceptor(publisher);
+    public BusinessEventInterceptor businessEventInterceptor(
+            EventPublisher publisher,
+            @Value("${spring.application.name:unknown-service}")
+            String serviceName,
+            @Value("${spring.profiles.active:default}")
+            String environment
+    ) {
+        return new BusinessEventInterceptor(
+                publisher,
+                serviceName,
+                environment
+        );
     }
 
     @Bean

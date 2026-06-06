@@ -1,19 +1,20 @@
 package io.echotrace.collector.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
 @Entity
 @Table(name = "events")
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class EventEntity {
 
     @Id
@@ -22,28 +23,103 @@ public class EventEntity {
 
     private String eventName;
 
-    private Instant timestamp;
+    private String serviceName;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "metadata", columnDefinition = "jsonb")
-    private Map<String, Object> metadata;
+    private String environment;
+
+    private String status;
+
+    private long durationMs;
+
+    private String traceId;
+
+    private String spanId;
+
+    private Instant createdAt;
+
+    @Type(type = "jsonb")
+    private Map<String, Object> payload;
 
     public EventEntity() {
     }
 
-    public EventEntity(UUID id, String eventName, Instant timestamp, Map<String, Object> metadata) {
+    public EventEntity(UUID id, String eventName, String serviceName, String environment,
+                       String status, long durationMs, String traceId, String spanId,
+                       Instant createdAt, Map<String, Object> payload) {
         this.id = id;
         this.eventName = eventName;
-        this.timestamp = timestamp;
-        this.metadata = metadata;
+        this.serviceName = serviceName;
+        this.environment = environment;
+        this.status = status;
+        this.durationMs = durationMs;
+        this.traceId = traceId;
+        this.spanId = spanId;
+        this.createdAt = createdAt;
+        this.payload = payload;
     }
 
-    public UUID getId() {
-        return id;
+    public Map<String, Object> getPayload() {
+        return payload;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setPayload(Map<String, Object> payload) {
+        this.payload = payload;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getSpanId() {
+        return spanId;
+    }
+
+    public void setSpanId(String spanId) {
+        this.spanId = spanId;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId) {
+        this.traceId = traceId;
+    }
+
+    public long getDurationMs() {
+        return durationMs;
+    }
+
+    public void setDurationMs(long durationMs) {
+        this.durationMs = durationMs;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public String getEventName() {
@@ -54,19 +130,11 @@ public class EventEntity {
         this.eventName = eventName;
     }
 
-    public Instant getTimestamp() {
-        return timestamp;
+    public UUID getId() {
+        return id;
     }
 
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
+    public void setId(UUID id) {
+        this.id = id;
     }
 }
