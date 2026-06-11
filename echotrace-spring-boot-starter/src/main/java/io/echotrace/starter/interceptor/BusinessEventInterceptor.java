@@ -10,8 +10,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,13 +33,24 @@ public class BusinessEventInterceptor {
 
     private final EventPublisher publisher;
 
-    public BusinessEventInterceptor(EventPublisher publisher) {
+    private final String serviceName;
+
+    private final String environment;
+
+    public BusinessEventInterceptor(EventPublisher publisher,
+                                    @Value("${spring.application.name:unknown-service}")
+                                    String serviceName,
+                                    @Value("${spring.profiles.active:default}")
+                                    String environment) {
         this.publisher = publisher;
+        this.serviceName = serviceName;
+        this.environment = environment;
     }
 
     @Around("@annotation(event)")
     public Object intercept(ProceedingJoinPoint pjp, EchoTrace event) throws Throwable {
 
+        Instant createdAt = Instant.now();
         long start = System.nanoTime();
         Object result = null;
         Throwable error = null;
@@ -60,24 +73,24 @@ public class BusinessEventInterceptor {
                 // (B) Captura manual via telemetry.capture(...)
                 Map<String, Object> manualCaptured = Telemetry.read();
 
-                Map<String, Object> metadata = new HashMap<>(autoCaptured);
+                Map<String, Object> payloadData = new HashMap<>(autoCaptured);
                 manualCaptured.forEach((k, v) ->
-                        metadata.merge(k, v, (autoVal, manualVal) -> manualVal)
+                        payloadData.merge(k, v, (autoVal, manualVal) -> manualVal)
                 );
 
-                metadata.put("method", pjp.getSignature().toShortString());
-                metadata.put("class", pjp.getTarget().getClass().getSimpleName());
+                payloadData.put("method", pjp.getSignature().toShortString());
+                payloadData.put("class", pjp.getTarget().getClass().getSimpleName());
 
                 // captura retorno
                 if (event.captureReturn() && error == null) {
-                    metadata.put("methodReturn", safeSerialize(result));
+                    payloadData.put("methodReturn", safeSerialize(result));
                 }
 
                 // captura erro
                 if (error != null) {
-                    metadata.put("errorType", error.getClass().getSimpleName());
-                    metadata.put("errorMessage", error.getMessage());
-                    metadata.put("errorStack",
+                    payloadData.put("errorType", error.getClass().getSimpleName());
+                    payloadData.put("errorMessage", error.getMessage());
+                    payloadData.put("errorStack",
                             Arrays.stream(error.getStackTrace())
                                     .limit(10)
                                     .map(StackTraceElement::toString)
@@ -95,13 +108,27 @@ public class BusinessEventInterceptor {
                 String spanId = UUID.randomUUID().toString();
                 Telemetry.setSpanId(spanId);
 
+                String status = error == null
+                        ? "SUCCESS"
+                        : "ERROR";
+
                 EventPayload payload = new EventPayload(
                         event.name(),
+                        serviceName,
+                        environment,
+                        status,
                         duration,
                         traceId,
                         spanId,
-                        metadata
+                        createdAt,
+                        payloadData
                 );
+
+                System.out.println("event.name = " + event.name());
+                System.out.println("serviceName = " + serviceName);
+                System.out.println("environment = " + environment);
+                System.out.println("status = " + status);
+                System.out.println("payloadData = " + payloadData);
 
                 publisher.publish(payload);
 
