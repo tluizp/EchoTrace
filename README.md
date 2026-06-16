@@ -1,252 +1,154 @@
-<h1 align="center">EchoTrace</h1>
+# 🚀 EchoTrace
 
 <p align="center">
-  Observe your business. Not just your infrastructure.
+  <h3 align="center">Observe your business. Not just your infrastructure.</h3>
+</p>
+
+<p align="center">
+  Open-source business observability platform for tracking business events, funnels, conversions and customer journeys.
+</p>
+
+<p align="center">
+  <a href="https://tluizp.github.io/EchoTraceDoc/">📖 Documentation</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue">
+  <img src="https://img.shields.io/badge/Java-17-orange">
+  <img src="https://img.shields.io/badge/Spring_Boot-2.x-green">
 </p>
 
 ---
 
-## 🧠 O problema
+## Why EchoTrace?
 
-Hoje você sabe tudo sobre:
+Traditional observability tells you:
 
-* CPU 🔧
-* Memória 💾
-* Latência ⏱️
+* CPU usage
+* Memory consumption
+* Request latency
+* Error rates
 
-Mas não sabe responder:
+But your business needs answers like:
 
-* Quantos pedidos foram realmente criados?
-* Onde os usuários estão desistindo?
-* Quais operações falham no fluxo de negócio?
+* How many orders were actually created?
+* How many payments were approved?
+* Where are customers abandoning the checkout flow?
+* Which business operations are failing most often?
 
-👉 Logs são desestruturados
+Logs are unstructured.
 
-👉 Métricas são agregadas
+Metrics are aggregated.
 
-👉 Traces não entendem o negócio
+Traces understand requests.
 
-Falta contexto.
-
----
-
-## 💡 A solução
-
-O **EchoTrace** transforma qualquer método da sua aplicação em um **evento de negócio estruturado** — automaticamente.
-
-* Sem acoplamento.
-* Sem dependência de infra.
-* Sem complexidade.
+**EchoTrace understands business events.**
 
 ---
 
-## ⚡ Quick Start
+## What is EchoTrace?
 
-Adicione a dependência:
+EchoTrace transforms application execution into structured business events.
 
-### GRADLE
-```gradle
-implementation 'io.echotrace:echotrace-spring-boot-starter:1.0.0'
-```
+With a single annotation, you can capture:
 
-### MAVEN
-```xml
-<dependency>
-    <groupId>io.echotrace</groupId>
-    <artifactId>echotrace-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-### Anote seu método:
+* Business operations
+* Request attributes
+* Return values
+* Execution time
+* Errors
+* Custom business metadata
 
-```java
-@EchoTrace(name = "criacao_pedido", capture={"request.cpf"}, captureReturn = true)
-public Pedido criarPedido(PedidoRequest request) {
-    return service.criar(request);
-}
-```
+And send everything to:
 
-### Caso queira enriquecer com mais informações
-#### Utilize o Telemetry.capture()
-
-```java
-import io.echotrace.telemetry.Telemetry;
-
-@EchoTrace(name = "pedido.request", capture={"pedido.id"}, captureReturn = true)
-public PedidoResponse criarPedido(@RequestBody PedidoRequest pedido) {
-    Telemetry.capture("valor_gasto", pedido.getValor());
-
-    PedidoResponse pedidoResponse = new PedidoResponse();
-    pedidoResponse.setStatus("EM ANDAMENTO");
-    pedidoResponse.setHorarioExpectativaEntrega("19:30");
-
-    Telemetry.capture("expectativa_entrega", pedidoResponse.getHorarioExpectativaEntrega());
-
-    return pedidoResponse;
-}
-```
-
-Pronto.
-
-#### 👉 Você já está gerando eventos.
-
----
-
-## 📦 O que é gerado
-
-### Caso de sucesso
-```json
-{
-  "event": "criacao_pedido",
-  "timestamp": "2026-04-07T20:03:13Z",
-  "durationMs": 8,
-  "metadata": {
-    "class": "PedidoService",
-    "method": "PedidoService.criarPedido(..)",
-    "methodReturn": {"pix": "Teste12345"},
-    "request.cpf": "123.456.789-01"
-  },
-  "traceId": "28a9c1fb-97d2-4c12-b067-e45863bc4a35",
-  "spanId": "5161f3d2-a1a5-405c-a0e4-87f4313a6ef0"
-}
-```
-
-### Caso de enriquecimento de evento
-```json
-{
-  "event": "pedido.request",
-  "timestamp": "2026-04-11T13:45:36.786129Z",
-  "durationMs": 1888,
-  "metadata": {
-    "expectativa_entrega": "19:30",
-    "class": "PedidoService",
-    "method": "PedidoService.criarPedido(..)",
-    "valor_gasto": 75.87,
-    "pedido.id": "A12VDf4SDfds5",
-    "methodReturn": {
-      "status": "EM ANDAMENTO",
-      "horarioExpectativaEntrega": "19:30"
-    }
-  },
-  "traceId": "f8d088d7-cb83-49a1-949b-7cb3b65710dc",
-  "spanId": "8e26b77c-1fbc-46cf-b0d1-99fc827d614d"
-}
-```
-
-### Caso de falha
-```json
-{
-  "event": "criacao_pedido",
-  "timestamp": "2026-04-07T20:02:29Z",
-  "durationMs": 8,
-  "metadata": {
-    "errorType": "RuntimeException",
-    "errorMessage": "Erro ao consultar API externa",
-    "errorStack": ["..."],
-    "class":"PedidoService"
-  },
-  "traceId": "92d1a9f2-881c-489d-92a2-09f5295fbbf4",
-  "spanId": "35906647-1c2e-4317-b6c4-8f1152b17a2c"
-}
-```
----
-
-## 🔌 Plugável por design
-
-Você não fica preso a nenhuma tecnologia.
-
-A lib apenas gera o evento.
-Você decide o destino.
-
-```java
-@Bean
-public EventPublisher customPublisher() {
-    return payload -> enviarParaQualquerLugar(payload);
-}
-```
-
----
-
-## ⚙️ Comportamento automático
-
-| Situação                    | Resultado                 |
-|-----------------------------|---------------------------|
-| Nenhuma configuração        | Log automático no console |
-| `collector-url` configurado | Envio HTTP                |
-| Publisher customizado       | Total controle            |
-
----
-
-## 🌐 Configuração HTTP
-
-```properties
-echotrace.collector-url= http://localhost:3001
-```
-
----
-
-## 🧩 Arquitetura
-
-* **Core** → contratos e modelo
-* **Starter** → auto-configuração Spring Boot
-* **Publisher** → saída plugável
-
----
-
-## 🔥 Diferenciais
-
-### ✔ Zero configuração
-
-Adicionou a dependência → já funciona
-
----
-
-### ✔ Sem lock-in
-
-Você nunca fica preso a Kafka, HTTP ou qualquer infra
-
----
-
-### ✔ Foco em negócio
-
-Eventos estruturados, não logs genéricos
-
----
-
-### ✔ Extensível
-
-Crie seus próprios publishers:
-
+* HTTP endpoints
 * Kafka
-* HTTP
 * Elasticsearch
 * Datadog
-* qualquer coisa
+* Custom destinations
+
+without coupling your application to any observability platform.
 
 ---
 
-## 🛠️ Casos de uso
+## Architecture
 
-* 📊 Observabilidade de negócio
-* 🔍 Auditoria de operações
-* 📈 Analytics em tempo real
-* 🔐 Rastreio de dados sensíveis (PII)
-* 🧪 Debug de fluxos críticos
+```text
+Spring Application
+        │
+        ▼
+   @EchoTrace
+        │
+        ▼
+ Business Event
+        │
+        ▼
+ EventPublisher
+        │
+ ┌──────┼───────────┐
+ ▼      ▼           ▼
+HTTP   Kafka   Custom Publisher
+        │
+        ▼
+  EchoTrace Collector
+        │
+        ▼
+ Analytics & Dashboards
+```
 
 ---
 
-## 📄 Licença
+## Modules
 
-MIT
+### echotrace-core
+
+Core contracts, annotations and event model.
+
+### echotrace-spring-boot-starter
+
+Spring Boot auto-configuration and event interception.
+
+### echotrace-collector
+
+Event ingestion service responsible for storing and processing business events.
 
 ---
 
-## 💬 Filosofia
+## Key Features
 
-> Seu sistema já gera dados. Você só não está ouvindo.
+* Zero configuration startup
+* Structured business events
+* Automatic success and error tracking
+* Event enrichment via Telemetry API
+* Pluggable publishers
+* No vendor lock-in
+* Business-focused observability
 
-**EchoTrace transforma execução em significado.**
+---
+
+## Documentation
+
+Full documentation:
+
+https://tluizp.github.io/EchoTraceDoc/
+
+---
+
+## Vision
+
+EchoTrace is evolving beyond event collection.
+
+Future capabilities include:
+
+* Business Funnels
+* Customer Journeys
+* Conversion Analytics
+* Event Correlation
+* Business Metrics Dashboards
+* Real-time Monitoring
+
+---
 
 ## License
 
-This project is licensed under the Apache License 2.0.
+Apache License 2.0
