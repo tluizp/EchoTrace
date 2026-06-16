@@ -1,22 +1,25 @@
-<h2 align="center">EchoTrace</h2>
+<div align="center">
 
-<p align="center">
-  <h3 align="center">Observe your business. Not just your infrastructure.</h3>
-</p>
+# 🌌 EchoTrace
 
-<p align="center">
-  Open-source business observability platform for tracking business events, funnels, conversions and customer journeys.
-</p>
+_Infrastructure observability tells you how your system behaves._  
+**· Business observability tells you how your company performs ·**
 
-<p align="center">
-  <a href="https://tluizp.github.io/EchoTraceDoc/">📖 Documentation</a>
-</p>
+✨ **Open-source business observability platform** for tracking business events, funnels, conversions, and customer journeys.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-blue">
-  <img src="https://img.shields.io/badge/Java-17-orange">
-  <img src="https://img.shields.io/badge/Spring_Boot-2.x-green">
-</p>
+<br />
+
+[![Documentation](https://img.shields.io/badge/Documentation-📖-blueviolet?style=for-the-badge)](https://tluizp.github.io/EchoTraceDoc/)
+
+📦 [**Get Started**](https://tluizp.github.io/EchoTraceDoc/) · 🛠️ [**Features**](#key-features) · 🏗️ [**Architecture**](#architecture)
+
+<br />
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-17%2B-orange?style=flat-square&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.x_/_3.x-brightgreen?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/)
+
+</div>
 
 ---
 
