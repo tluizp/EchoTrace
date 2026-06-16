@@ -244,3 +244,7 @@ MIT
 > Seu sistema já gera dados. Você só não está ouvindo.
 
 **EchoTrace transforma execução em significado.**
+
+## License
+
+This project is licensed under the Apache License 2.0.
