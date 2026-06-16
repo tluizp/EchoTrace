@@ -77,26 +77,42 @@ without coupling your application to any observability platform.
 ## Architecture
 
 ```text
-Spring Application
-        │
-        ▼
-   @EchoTrace
-        │
-        ▼
- Business Event
-        │
-        ▼
- EventPublisher
-        │
- ┌──────┼───────────┐
- ▼      ▼           ▼
-HTTP   Kafka   Custom Publisher
-        │
-        ▼
-  EchoTrace Collector
-        │
-        ▼
- Analytics & Dashboards
+
+┌──────────────────────────────┐
+│      Spring Application      │
+└──────────────┬───────────────┘
+               │
+               ▼
+          @EchoTrace
+               │
+               ▼
+      Business Event Layer
+               │
+               ▼
+         EventPublisher
+               │
+      ┌────────┼────────┐
+      ▼        ▼        ▼
+    HTTP     Kafka    Custom
+               │
+               ▼
+┌──────────────────────────────┐
+│     EchoTrace Collector      │
+└──────────────┬───────────────┘
+               │
+               ▼
+      Event Processing Engine
+               │
+ ┌─────────────┼─────────────┐
+ ▼             ▼             ▼
+Metrics     Funnels      Journeys
+               │
+               ▼
+       Business Dashboards
+               │
+               ▼
+      Actionable Insights
+
 ```
 
 ---
@@ -134,21 +150,6 @@ Event ingestion service responsible for storing and processing business events.
 Full documentation:
 
 https://tluizp.github.io/EchoTraceDoc/
-
----
-
-## Vision
-
-EchoTrace is evolving beyond event collection.
-
-Future capabilities include:
-
-* Business Funnels
-* Customer Journeys
-* Conversion Analytics
-* Event Correlation
-* Business Metrics Dashboards
-* Real-time Monitoring
 
 ---
 
