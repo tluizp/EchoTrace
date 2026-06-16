@@ -1,3 +1,5 @@
+> ⚠️ EchoTrace is currently in early development and APIs may evolve between releases.
+
 <div align="center">
 
 # 🌌 EchoTrace
