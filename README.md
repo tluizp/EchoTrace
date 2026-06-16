@@ -1,4 +1,4 @@
-# 🚀 EchoTrace
+<h2 align="center">EchoTrace</h2>
 
 <p align="center">
   <h3 align="center">Observe your business. Not just your infrastructure.</h3>
