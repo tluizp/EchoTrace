@@ -16,6 +16,7 @@ _Infrastructure observability tells you how your system behaves._
 <br />
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v0.1.0-green?style=flat-square)](https://github.com/tluizp/EchoTrace/releases)
 [![Java](https://img.shields.io/badge/Java-17%2B-orange?style=flat-square&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.x_/_3.x-brightgreen?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/)
 
