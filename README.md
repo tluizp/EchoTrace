@@ -1,6 +1,8 @@
-# 🚀 EchoTrace
+<h1 align="center">EchoTrace</h1>
 
-> **Pare de observar apenas o sistema. Comece a observar o seu negócio.**
+<p align="center">
+  Observe your business. Not just your infrastructure.
+</p>
 
 ---
 
