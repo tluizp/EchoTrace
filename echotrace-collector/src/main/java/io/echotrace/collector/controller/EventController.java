@@ -32,6 +32,13 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<Void> receive(@RequestBody EventPayload payload) {
+        if (payload.getEventId() == null || payload.getEventName() == null || payload.getCreatedAt() == null
+                || payload.getSpecVersion() == null || payload.getEventVersion() < 1) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (repository.existsByEventId(payload.getEventId())) {
+            return ResponseEntity.accepted().build();
+        }
         EventEntity entity = mapper.toEntity(payload);
         repository.save(entity);
         return ResponseEntity.accepted().build();

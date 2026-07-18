@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.Entity;
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -20,6 +21,13 @@ public class EventEntity {
     @Id
     @GeneratedValue
     private UUID id;
+
+    private String specVersion;
+
+    @Column(unique = true)
+    private String eventId;
+
+    private int eventVersion;
 
     private String eventName;
 
@@ -37,10 +45,44 @@ public class EventEntity {
 
     private Instant createdAt;
 
+    private Instant observedAt;
+
     @Type(type = "jsonb")
     private Map<String, Object> payload;
 
     public EventEntity() {
+    }
+
+    public String getSpecVersion() {
+        return specVersion;
+    }
+
+    public void setSpecVersion(String specVersion) {
+        this.specVersion = specVersion;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public int getEventVersion() {
+        return eventVersion;
+    }
+
+    public void setEventVersion(int eventVersion) {
+        this.eventVersion = eventVersion;
+    }
+
+    public Instant getObservedAt() {
+        return observedAt;
+    }
+
+    public void setObservedAt(Instant observedAt) {
+        this.observedAt = observedAt;
     }
 
     public EventEntity(UUID id, String eventName, String serviceName, String environment,

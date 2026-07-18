@@ -4,3 +4,7 @@ plugins {
 
 group = 'io.echotrace'
 version = '1.0.0'
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}

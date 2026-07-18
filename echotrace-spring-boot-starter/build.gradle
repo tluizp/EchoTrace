@@ -18,4 +18,6 @@ dependencies {
     implementation 'org.aspectj:aspectjrt:1.9.20.1'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     implementation("org.aspectj:aspectjweaver:1.9.25")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }

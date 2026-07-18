@@ -228,7 +228,6 @@ Crie seus próprios publishers:
 * 📊 Observabilidade de negócio
 * 🔍 Auditoria de operações
 * 📈 Analytics em tempo real
-* 🔐 Rastreio de dados sensíveis (PII)
 * 🧪 Debug de fluxos críticos
 
 ---
