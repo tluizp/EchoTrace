@@ -206,6 +206,20 @@ journeys that reached the previous stage. A drop-off means the journey did not
 reach the next observed stage inside the requested window; it is not necessarily
 a confirmed customer abandonment.
 
+### Deployment impact
+
+EchoTrace can compare journeys that started before and after a deployment was
+first observed:
+
+```http
+GET /api/journeys/types/order.checkout/deployments/deploy-7/impact?serviceName=payment-service&completionStage=confirmed&start=2026-07-19T10:00:00Z&end=2026-07-19T12:00:00Z
+```
+
+The analysis reports conversion and failure deltas, affected values by currency,
+deployment failure reasons and sample sufficiency. The cutover is inferred from
+the first event carrying the deployment ID, so the result is a temporal
+correlation signal and does not by itself prove causation.
+
 ---
 
 ## Documentation
