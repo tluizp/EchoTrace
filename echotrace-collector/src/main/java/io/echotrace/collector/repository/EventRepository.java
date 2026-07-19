@@ -19,6 +19,9 @@ public interface EventRepository extends JpaRepository<EventEntity, UUID> {
 
     List<EventEntity> findByJourneyIdOrderByCreatedAtAsc(String journeyId);
 
+    List<EventEntity> findByJourneyTypeAndCreatedAtBetweenOrderByCreatedAtAsc(
+            String journeyType, Instant start, Instant end);
+
     @Query(value = "SELECT " +
             "    date_trunc(:interval, created_at) as bucketTime, " +
             "    to_char( " +

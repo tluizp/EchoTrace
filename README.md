@@ -193,6 +193,19 @@ GET /api/journeys/{journeyId}
 The response consolidates the journey status, elapsed time, affected value when
 the journey failed, and every event with its trace and deployment correlation.
 
+### Journey funnel
+
+Distinct journeys can be aggregated into a sequential funnel for a time window:
+
+```http
+GET /api/journeys/types/order.checkout/funnel?start=2026-07-19T10:00:00Z&end=2026-07-19T11:00:00Z
+```
+
+Stages are ordered by their first observed occurrence. Each stage only includes
+journeys that reached the previous stage. A drop-off means the journey did not
+reach the next observed stage inside the requested window; it is not necessarily
+a confirmed customer abandonment.
+
 ---
 
 ## Documentation
