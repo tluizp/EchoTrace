@@ -182,6 +182,17 @@ echotrace:
 The collector stores outcomes, journey identifiers, values and deployment
 metadata in queryable columns. Database schema changes are managed by Flyway.
 
+### Reconstructing a journey
+
+The collector exposes the ordered business and technical context of one operation:
+
+```http
+GET /api/journeys/{journeyId}
+```
+
+The response consolidates the journey status, elapsed time, affected value when
+the journey failed, and every event with its trace and deployment correlation.
+
 ---
 
 ## Documentation
