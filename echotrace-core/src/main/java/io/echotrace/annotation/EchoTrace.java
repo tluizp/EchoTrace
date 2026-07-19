@@ -42,5 +42,22 @@ public @interface EchoTrace {
      * <p>Por padrão é {@code false} para evitar exposição acidental de dados sensíveis.</p>
      */
     boolean captureReturn() default false;
-}
 
+    /** Stable business result represented by this event, for example payment.approval. */
+    String outcome() default "";
+
+    /** Stable journey type, for example order.checkout. */
+    String journey() default "";
+
+    /** Current stage inside the journey, for example payment. */
+    String stage() default "";
+
+    /** Argument path whose value correlates events that belong to the same journey. */
+    String correlationId() default "";
+
+    /** Argument path whose numeric value represents the financial impact. */
+    String value() default "";
+
+    /** ISO 4217 currency used by {@link #value()}, for example BRL. */
+    String currency() default "";
+}

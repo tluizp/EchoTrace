@@ -9,6 +9,9 @@ public class TelemetryProperties {
     private int connectTimeoutMs = 2000;
     private int requestTimeoutMs = 3000;
     private int maxRetries = 2;
+    private String serviceVersion;
+    private String deploymentId;
+    private String commitSha;
 
     public String getCollectorUrl() {
         return collectorUrl;
@@ -40,5 +43,29 @@ public class TelemetryProperties {
 
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
+    }
+
+    public String getServiceVersion() {
+        return serviceVersion;
+    }
+
+    public void setServiceVersion(String serviceVersion) {
+        this.serviceVersion = serviceVersion;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
+    }
+
+    public String getCommitSha() {
+        return commitSha;
+    }
+
+    public void setCommitSha(String commitSha) {
+        this.commitSha = commitSha;
     }
 }

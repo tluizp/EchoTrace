@@ -40,6 +40,7 @@ public class EventTraceAutoConfiguration {
     @ConditionalOnBean(EventPublisher.class)
     public BusinessEventInterceptor businessEventInterceptor(
             EventPublisher publisher,
+            TelemetryProperties properties,
             @Value("${spring.application.name:unknown-service}")
             String serviceName,
             @Value("${spring.profiles.active:default}")
@@ -48,16 +49,21 @@ public class EventTraceAutoConfiguration {
         return new BusinessEventInterceptor(
                 publisher,
                 serviceName,
-                environment
+                environment,
+                properties.getServiceVersion(),
+                properties.getDeploymentId(),
+                properties.getCommitSha()
         );
     }
 
     @Bean
     public EventEmitter eventEmitter(
             EventPublisher publisher,
+            TelemetryProperties properties,
             @Value("${spring.application.name:unknown-service}") String serviceName,
             @Value("${spring.profiles.active:default}") String environment
     ) {
-        return new EventEmitter(publisher, serviceName, environment);
+        return new EventEmitter(publisher, serviceName, environment,
+                properties.getServiceVersion(), properties.getDeploymentId(), properties.getCommitSha());
     }
 }

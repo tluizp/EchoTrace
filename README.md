@@ -145,6 +145,42 @@ Event ingestion service responsible for storing and processing business events.
 * Pluggable publishers
 * No vendor lock-in
 * Business-focused observability
+* Versioned business outcomes and customer journeys
+* Financial impact and deployment correlation metadata
+
+## Business outcomes
+
+EchoTrace 2.0 events can describe what an operation delivered to the business,
+while remaining compatible with events that do not contain business context.
+
+```java
+@EchoTrace(
+    name = "payment.processed",
+    outcome = "payment.approval",
+    journey = "order.checkout",
+    stage = "payment",
+    correlationId = "request.orderId",
+    value = "request.amount",
+    currency = "BRL"
+)
+public Payment approve(PaymentRequest request) {
+    // A dynamic reason or other context can be added during execution.
+    Telemetry.reason("ACQUIRER_TIMEOUT");
+    return paymentService.approve(request);
+}
+```
+
+Deployment metadata can be supplied by the delivery pipeline:
+
+```yaml
+echotrace:
+  service-version: ${APP_VERSION:unknown}
+  deployment-id: ${DEPLOYMENT_ID:unknown}
+  commit-sha: ${GIT_COMMIT:unknown}
+```
+
+The collector stores outcomes, journey identifiers, values and deployment
+metadata in queryable columns. Database schema changes are managed by Flyway.
 
 ---
 
