@@ -1,245 +1,161 @@
-# 🚀 EchoTrace
+> ⚠️ EchoTrace is currently in early development and APIs may evolve between releases.
 
-> **Pare de observar apenas o sistema. Comece a observar o seu negócio.**
+<div align="center">
 
----
+# 🌌 EchoTrace
 
-## 🧠 O problema
+_Infrastructure observability tells you how your system behaves._  
+**· Business observability tells you how your company performs ·**
 
-Hoje você sabe tudo sobre:
+✨ **Open-source business observability platform** for tracking business events, funnels, conversions, and customer journeys.
 
-* CPU 🔧
-* Memória 💾
-* Latência ⏱️
+<br />
 
-Mas não sabe responder:
+[![Documentation](https://img.shields.io/badge/Documentation-📖-blueviolet?style=for-the-badge)](https://tluizp.github.io/EchoTraceDoc/)
 
-* Quantos pedidos foram realmente criados?
-* Onde os usuários estão desistindo?
-* Quais operações falham no fluxo de negócio?
+📦 [**Get Started**](https://tluizp.github.io/EchoTraceDoc/) · 🛠️ [**Features**](#key-features) · 🏗️ [**Architecture**](#architecture)
 
-👉 Logs são desestruturados
+<br />
 
-👉 Métricas são agregadas
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v0.1.0-green?style=flat-square)](https://github.com/tluizp/EchoTrace/releases)
+[![Java](https://img.shields.io/badge/Java-17%2B-orange?style=flat-square&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.x_/_3.x-brightgreen?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/)
 
-👉 Traces não entendem o negócio
-
-Falta contexto.
+</div>
 
 ---
 
-## 💡 A solução
+## Why EchoTrace?
 
-O **EchoTrace** transforma qualquer método da sua aplicação em um **evento de negócio estruturado** — automaticamente.
+Traditional observability tells you:
 
-* Sem acoplamento.
-* Sem dependência de infra.
-* Sem complexidade.
+* CPU usage
+* Memory consumption
+* Request latency
+* Error rates
 
----
+But your business needs answers like:
 
-## ⚡ Quick Start
+* How many orders were actually created?
+* How many payments were approved?
+* Where are customers abandoning the checkout flow?
+* Which business operations are failing most often?
 
-Adicione a dependência:
+Logs are unstructured.
 
-### GRADLE
-```gradle
-implementation 'io.echotrace:echotrace-spring-boot-starter:1.0.0'
-```
+Metrics are aggregated.
 
-### MAVEN
-```xml
-<dependency>
-    <groupId>io.echotrace</groupId>
-    <artifactId>echotrace-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-### Anote seu método:
+Traces understand requests.
 
-```java
-@EchoTrace(name = "criacao_pedido", capture={"request.cpf"}, captureReturn = true)
-public Pedido criarPedido(PedidoRequest request) {
-    return service.criar(request);
-}
-```
-
-### Caso queira enriquecer com mais informações
-#### Utilize o Telemetry.capture()
-
-```java
-import io.echotrace.telemetry.Telemetry;
-
-@EchoTrace(name = "pedido.request", capture={"pedido.id"}, captureReturn = true)
-public PedidoResponse criarPedido(@RequestBody PedidoRequest pedido) {
-    Telemetry.capture("valor_gasto", pedido.getValor());
-
-    PedidoResponse pedidoResponse = new PedidoResponse();
-    pedidoResponse.setStatus("EM ANDAMENTO");
-    pedidoResponse.setHorarioExpectativaEntrega("19:30");
-
-    Telemetry.capture("expectativa_entrega", pedidoResponse.getHorarioExpectativaEntrega());
-
-    return pedidoResponse;
-}
-```
-
-Pronto.
-
-#### 👉 Você já está gerando eventos.
+**EchoTrace understands business events.**
 
 ---
 
-## 📦 O que é gerado
+## What is EchoTrace?
 
-### Caso de sucesso
-```json
-{
-  "event": "criacao_pedido",
-  "timestamp": "2026-04-07T20:03:13Z",
-  "durationMs": 8,
-  "metadata": {
-    "class": "PedidoService",
-    "method": "PedidoService.criarPedido(..)",
-    "methodReturn": {"pix": "Teste12345"},
-    "request.cpf": "123.456.789-01"
-  },
-  "traceId": "28a9c1fb-97d2-4c12-b067-e45863bc4a35",
-  "spanId": "5161f3d2-a1a5-405c-a0e4-87f4313a6ef0"
-}
-```
+EchoTrace transforms application execution into structured business events.
 
-### Caso de enriquecimento de evento
-```json
-{
-  "event": "pedido.request",
-  "timestamp": "2026-04-11T13:45:36.786129Z",
-  "durationMs": 1888,
-  "metadata": {
-    "expectativa_entrega": "19:30",
-    "class": "PedidoService",
-    "method": "PedidoService.criarPedido(..)",
-    "valor_gasto": 75.87,
-    "pedido.id": "A12VDf4SDfds5",
-    "methodReturn": {
-      "status": "EM ANDAMENTO",
-      "horarioExpectativaEntrega": "19:30"
-    }
-  },
-  "traceId": "f8d088d7-cb83-49a1-949b-7cb3b65710dc",
-  "spanId": "8e26b77c-1fbc-46cf-b0d1-99fc827d614d"
-}
-```
+With a single annotation, you can capture:
 
-### Caso de falha
-```json
-{
-  "event": "criacao_pedido",
-  "timestamp": "2026-04-07T20:02:29Z",
-  "durationMs": 8,
-  "metadata": {
-    "errorType": "RuntimeException",
-    "errorMessage": "Erro ao consultar API externa",
-    "errorStack": ["..."],
-    "class":"PedidoService"
-  },
-  "traceId": "92d1a9f2-881c-489d-92a2-09f5295fbbf4",
-  "spanId": "35906647-1c2e-4317-b6c4-8f1152b17a2c"
-}
-```
----
+* Business operations
+* Request attributes
+* Return values
+* Execution time
+* Errors
+* Custom business metadata
 
-## 🔌 Plugável por design
+And send everything to:
 
-Você não fica preso a nenhuma tecnologia.
-
-A lib apenas gera o evento.
-Você decide o destino.
-
-```java
-@Bean
-public EventPublisher customPublisher() {
-    return payload -> enviarParaQualquerLugar(payload);
-}
-```
-
----
-
-## ⚙️ Comportamento automático
-
-| Situação                    | Resultado                 |
-|-----------------------------|---------------------------|
-| Nenhuma configuração        | Log automático no console |
-| `collector-url` configurado | Envio HTTP                |
-| Publisher customizado       | Total controle            |
-
----
-
-## 🌐 Configuração HTTP
-
-```properties
-echotrace.collector-url= http://localhost:3001
-```
-
----
-
-## 🧩 Arquitetura
-
-* **Core** → contratos e modelo
-* **Starter** → auto-configuração Spring Boot
-* **Publisher** → saída plugável
-
----
-
-## 🔥 Diferenciais
-
-### ✔ Zero configuração
-
-Adicionou a dependência → já funciona
-
----
-
-### ✔ Sem lock-in
-
-Você nunca fica preso a Kafka, HTTP ou qualquer infra
-
----
-
-### ✔ Foco em negócio
-
-Eventos estruturados, não logs genéricos
-
----
-
-### ✔ Extensível
-
-Crie seus próprios publishers:
-
+* HTTP endpoints
 * Kafka
-* HTTP
 * Elasticsearch
 * Datadog
-* qualquer coisa
+* Custom destinations
+
+without coupling your application to any observability platform.
 
 ---
 
-## 🛠️ Casos de uso
+## Architecture
 
-* 📊 Observabilidade de negócio
-* 🔍 Auditoria de operações
-* 📈 Analytics em tempo real
-* 🧪 Debug de fluxos críticos
+```text
+
+┌──────────────────────────────┐
+│      Spring Application      │
+└──────────────┬───────────────┘
+               │
+               ▼
+          @EchoTrace
+               │
+               ▼
+      Business Event Layer
+               │
+               ▼
+         EventPublisher
+               │
+      ┌────────┼────────┐
+      ▼        ▼        ▼
+    HTTP     Kafka    Custom
+               │
+               ▼
+┌──────────────────────────────┐
+│     EchoTrace Collector      │
+└──────────────┬───────────────┘
+               │
+               ▼
+      Event Processing Engine
+               │
+ ┌─────────────┼─────────────┐
+ ▼             ▼             ▼
+Metrics     Funnels      Journeys
+               │
+               ▼
+       Business Dashboards
+               │
+               ▼
+      Actionable Insights
+
+```
 
 ---
 
-## 📄 Licença
+## Modules
 
-MIT
+### echotrace-core
+
+Core contracts, annotations and event model.
+
+### echotrace-spring-boot-starter
+
+Spring Boot auto-configuration and event interception.
+
+### echotrace-collector
+
+Event ingestion service responsible for storing and processing business events.
 
 ---
 
-## 💬 Filosofia
+## Key Features
 
-> Seu sistema já gera dados. Você só não está ouvindo.
+* Zero configuration startup
+* Structured business events
+* Automatic success and error tracking
+* Event enrichment via Telemetry API
+* Pluggable publishers
+* No vendor lock-in
+* Business-focused observability
 
-**EchoTrace transforma execução em significado.**
+---
+
+## Documentation
+
+Full documentation:
+
+https://tluizp.github.io/EchoTraceDoc/
+
+---
+
+## License
+
+Apache License 2.0
