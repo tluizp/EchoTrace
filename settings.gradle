@@ -3,4 +3,4 @@ rootProject.name = 'echoTrace'
 include 'echotrace-core'
 include 'echotrace-spring-boot-starter'
 include 'echotrace-collector'
-
+include 'echotrace-demo-order-payment'

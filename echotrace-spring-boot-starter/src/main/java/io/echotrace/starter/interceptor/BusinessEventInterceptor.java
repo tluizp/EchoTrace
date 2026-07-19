@@ -4,6 +4,7 @@ import io.echotrace.annotation.EchoTrace;
 import io.echotrace.core.EventPublisher;
 import io.echotrace.core.AttributeSanitizer;
 import io.echotrace.model.EventPayload;
+import io.echotrace.model.BusinessOutcome;
 import io.echotrace.telemetry.Telemetry;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +39,9 @@ public class BusinessEventInterceptor {
     private final String serviceName;
 
     private final String environment;
+    private final String serviceVersion;
+    private final String deploymentId;
+    private final String commitSha;
     private final AttributeSanitizer sanitizer = new AttributeSanitizer();
 
     public BusinessEventInterceptor(EventPublisher publisher,
@@ -44,9 +49,17 @@ public class BusinessEventInterceptor {
                                     String serviceName,
                                     @Value("${spring.profiles.active:default}")
                                     String environment) {
+        this(publisher, serviceName, environment, null, null, null);
+    }
+
+    public BusinessEventInterceptor(EventPublisher publisher, String serviceName, String environment,
+                                    String serviceVersion, String deploymentId, String commitSha) {
         this.publisher = publisher;
         this.serviceName = serviceName;
         this.environment = environment;
+        this.serviceVersion = serviceVersion;
+        this.deploymentId = deploymentId;
+        this.commitSha = commitSha;
     }
 
     @Around("@annotation(event)")
@@ -112,7 +125,14 @@ public class BusinessEventInterceptor {
                         ? "SUCCESS"
                         : "ERROR";
 
+                BusinessOutcome annotatedOutcome = outcomeFromAnnotation(pjp, event);
+                BusinessOutcome manualOutcome = Telemetry.readBusinessOutcome();
+                BusinessOutcome businessOutcome = mergeOutcomes(annotatedOutcome, manualOutcome);
+
                 EventPayload payload = new EventPayload(
+                        EventPayload.CURRENT_SPEC_VERSION,
+                        UUID.randomUUID().toString(),
+                        1,
                         event.name(),
                         serviceName,
                         environment,
@@ -121,7 +141,12 @@ public class BusinessEventInterceptor {
                         traceId,
                         spanId,
                         createdAt,
-                        sanitizer.sanitize(payloadData)
+                        Instant.now(),
+                        sanitizer.sanitize(payloadData),
+                        businessOutcome,
+                        serviceVersion,
+                        deploymentId,
+                        commitSha
                 );
 
                 publisher.publish(payload);
@@ -132,6 +157,70 @@ public class BusinessEventInterceptor {
                 scope.close();
             }
         }
+    }
+
+    private BusinessOutcome outcomeFromAnnotation(ProceedingJoinPoint pjp, EchoTrace event) {
+        Object correlation = resolveArgumentPath(pjp, event.correlationId());
+        Object rawValue = resolveArgumentPath(pjp, event.value());
+        BigDecimal value = toBigDecimal(rawValue, event.value());
+        BusinessOutcome outcome = new BusinessOutcome(
+                event.outcome(), stringValue(correlation), event.journey(), event.stage(),
+                null, value, value == null ? null : event.currency());
+        return outcome.isEmpty() ? null : outcome;
+    }
+
+    private BusinessOutcome mergeOutcomes(BusinessOutcome base, BusinessOutcome override) {
+        if (base == null) return override;
+        if (override == null) return base;
+        return new BusinessOutcome(
+                first(override.getName(), base.getName()),
+                first(override.getJourneyId(), base.getJourneyId()),
+                first(override.getJourneyType(), base.getJourneyType()),
+                first(override.getStage(), base.getStage()),
+                first(override.getReason(), base.getReason()),
+                override.getValue() != null ? override.getValue() : base.getValue(),
+                first(override.getCurrency(), base.getCurrency())
+        );
+    }
+
+    private Object resolveArgumentPath(ProceedingJoinPoint pjp, String path) {
+        if (path == null || path.trim().isEmpty()) return null;
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
+        String[] names = signature.getParameterNames();
+        Object[] values = pjp.getArgs();
+        for (int i = 0; i < names.length; i++) {
+            if (path.equals(names[i])) return values[i];
+            if (path.startsWith(names[i] + ".")) {
+                try {
+                    return resolveFieldPath(values[i], path.substring(names[i].length() + 1));
+                } catch (Exception exception) {
+                    log.warn("[BusinessEvent] Failed to resolve business path: {}", path, exception);
+                    return null;
+                }
+            }
+        }
+        log.warn("[BusinessEvent] Business path does not match a method argument: {}", path);
+        return null;
+    }
+
+    private BigDecimal toBigDecimal(Object value, String path) {
+        if (value == null) return null;
+        if (value instanceof BigDecimal) return (BigDecimal) value;
+        if (value instanceof Number) return new BigDecimal(value.toString());
+        try {
+            return new BigDecimal(String.valueOf(value));
+        } catch (NumberFormatException exception) {
+            log.warn("[BusinessEvent] Business value at {} is not numeric", path);
+            return null;
+        }
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private String first(String preferred, String fallback) {
+        return preferred != null ? preferred : fallback;
     }
 
     private Map<String, Object> extractCapturedValues(

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,15 +33,21 @@ class EventEmitterTest {
 
         EventPayload event = emitter.event("order.created")
                 .version(2)
+                .outcome("order.creation")
+                .journey("order.checkout", "123")
+                .stage("order")
+                .value(new BigDecimal("49.90"), "BRL")
                 .attribute("order.id", "123")
                 .emit();
 
         assertEquals(1, published.size());
         assertNotNull(event.getEventId());
-        assertEquals("1.0", event.getSpecVersion());
+        assertEquals("2.0", event.getSpecVersion());
         assertEquals(2, event.getEventVersion());
         assertEquals("trace-id", event.getTraceId());
         assertEquals(now, event.getCreatedAt());
         assertEquals("123", event.getPayload().get("order.id"));
+        assertEquals("order.creation", event.getBusinessOutcome().getName());
+        assertEquals("123", event.getBusinessOutcome().getJourneyId());
     }
 }

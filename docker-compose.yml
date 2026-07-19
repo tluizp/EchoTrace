@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: echotrace
+      POSTGRES_USER: echotrace
+      POSTGRES_PASSWORD: echotrace
+    volumes:
+      - echotrace-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U echotrace -d echotrace"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  collector:
+    image: echotrace/collector:local
+    build:
+      context: .
+      dockerfile: docker/collector.Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      ECHOTRACE_DB_URL: jdbc:postgresql://postgres:5432/echotrace
+      ECHOTRACE_DB_USERNAME: echotrace
+      ECHOTRACE_DB_PASSWORD: echotrace
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  demo-v1:
+    image: echotrace/demo-order-payment:local
+    build:
+      context: .
+      dockerfile: docker/demo.Dockerfile
+    environment:
+      DEMO_SERVER_PORT: 8081
+      ECHOTRACE_COLLECTOR_URL: http://collector:8080
+      APP_VERSION: 1.0.0
+      DEPLOYMENT_ID: demo-v1
+      GIT_COMMIT: demo-v1
+    ports:
+      - "8081:8081"
+    depends_on:
+      collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8081/api/demo/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  demo-v2:
+    image: echotrace/demo-order-payment:local
+    pull_policy: never
+    environment:
+      DEMO_SERVER_PORT: 8081
+      ECHOTRACE_COLLECTOR_URL: http://collector:8080
+      APP_VERSION: 2.0.0
+      DEPLOYMENT_ID: demo-v2
+      GIT_COMMIT: demo-v2
+    ports:
+      - "8082:8081"
+    depends_on:
+      collector:
+        condition: service_healthy
+      demo-v1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8081/api/demo/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  echotrace-postgres-data:

@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,6 +43,27 @@ public class EventEntity {
     private String traceId;
 
     private String spanId;
+
+    private String outcomeName;
+
+    private String journeyId;
+
+    private String journeyType;
+
+    private String journeyStage;
+
+    private String outcomeReason;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal businessValue;
+
+    private String currency;
+
+    private String serviceVersion;
+
+    private String deploymentId;
+
+    private String commitSha;
 
     private Instant createdAt;
 
@@ -179,4 +201,25 @@ public class EventEntity {
     public void setId(UUID id) {
         this.id = id;
     }
+
+    public String getOutcomeName() { return outcomeName; }
+    public void setOutcomeName(String outcomeName) { this.outcomeName = outcomeName; }
+    public String getJourneyId() { return journeyId; }
+    public void setJourneyId(String journeyId) { this.journeyId = journeyId; }
+    public String getJourneyType() { return journeyType; }
+    public void setJourneyType(String journeyType) { this.journeyType = journeyType; }
+    public String getJourneyStage() { return journeyStage; }
+    public void setJourneyStage(String journeyStage) { this.journeyStage = journeyStage; }
+    public String getOutcomeReason() { return outcomeReason; }
+    public void setOutcomeReason(String outcomeReason) { this.outcomeReason = outcomeReason; }
+    public BigDecimal getBusinessValue() { return businessValue; }
+    public void setBusinessValue(BigDecimal businessValue) { this.businessValue = businessValue; }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+    public String getServiceVersion() { return serviceVersion; }
+    public void setServiceVersion(String serviceVersion) { this.serviceVersion = serviceVersion; }
+    public String getDeploymentId() { return deploymentId; }
+    public void setDeploymentId(String deploymentId) { this.deploymentId = deploymentId; }
+    public String getCommitSha() { return commitSha; }
+    public void setCommitSha(String commitSha) { this.commitSha = commitSha; }
 }

@@ -145,6 +145,174 @@ Event ingestion service responsible for storing and processing business events.
 * Pluggable publishers
 * No vendor lock-in
 * Business-focused observability
+* Versioned business outcomes and customer journeys
+* Financial impact and deployment correlation metadata
+
+## Business outcomes
+
+EchoTrace 2.0 events can describe what an operation delivered to the business,
+while remaining compatible with events that do not contain business context.
+
+```java
+@EchoTrace(
+    name = "payment.processed",
+    outcome = "payment.approval",
+    journey = "order.checkout",
+    stage = "payment",
+    correlationId = "request.orderId",
+    value = "request.amount",
+    currency = "BRL"
+)
+public Payment approve(PaymentRequest request) {
+    // A dynamic reason or other context can be added during execution.
+    Telemetry.reason("ACQUIRER_TIMEOUT");
+    return paymentService.approve(request);
+}
+```
+
+Deployment metadata can be supplied by the delivery pipeline:
+
+```yaml
+echotrace:
+  service-version: ${APP_VERSION:unknown}
+  deployment-id: ${DEPLOYMENT_ID:unknown}
+  commit-sha: ${GIT_COMMIT:unknown}
+```
+
+The collector stores outcomes, journey identifiers, values and deployment
+metadata in queryable columns. Database schema changes are managed by Flyway.
+
+### Reconstructing a journey
+
+The collector exposes the ordered business and technical context of one operation:
+
+```http
+GET /api/journeys/{journeyId}
+```
+
+The response consolidates the journey status, elapsed time, affected value when
+the journey failed, and every event with its trace and deployment correlation.
+
+### Journey funnel
+
+Distinct journeys can be aggregated into a sequential funnel for a time window:
+
+```http
+GET /api/journeys/types/order.checkout/funnel?start=2026-07-19T10:00:00Z&end=2026-07-19T11:00:00Z
+```
+
+Stages are ordered by their first observed occurrence. Each stage only includes
+journeys that reached the previous stage. A drop-off means the journey did not
+reach the next observed stage inside the requested window; it is not necessarily
+a confirmed customer abandonment.
+
+### Deployment impact
+
+EchoTrace can compare journeys that started before and after a deployment was
+first observed:
+
+```http
+GET /api/journeys/types/order.checkout/deployments/deploy-7/impact?serviceName=payment-service&completionStage=confirmed&start=2026-07-19T10:00:00Z&end=2026-07-19T12:00:00Z
+```
+
+The analysis reports conversion and failure deltas, affected values by currency,
+deployment failure reasons and sample sufficiency. The cutover is inferred from
+the first event carrying the deployment ID, so the result is a temporal
+correlation signal and does not by itself prove causation.
+
+### Business SLOs and alerts
+
+Business objectives are configured in the collector:
+
+```yaml
+echotrace:
+  business-slos:
+    - name: checkout-conversion
+      journey-type: order.checkout
+      completion-stage: confirmed
+      objective-percentage: 93
+      window-minutes: 60
+      minimum-journeys: 20
+```
+
+Evaluate every configured objective at the current time or at a reproducible
+point in time:
+
+```http
+GET /api/slos/evaluations
+GET /api/slos/evaluations?end=2026-07-19T12:00:00Z
+```
+
+Evaluations are classified as `NO_DATA`, `INSUFFICIENT_DATA`, `HEALTHY` or
+`BREACHED`. A breach of at least five percentage points is `CRITICAL`; smaller
+breaches are `WARNING`. Insufficient samples never trigger an alert.
+
+## Order-to-Payment demo
+
+The `echotrace-demo-order-payment` module produces real events through the
+EchoTrace starter. It creates checkout and order events programmatically and
+instruments payment execution with `@EchoTrace`.
+
+Start the collector with the demo Business SLO after starting PostgreSQL:
+
+```bash
+./gradlew :echotrace-collector:bootRun --args='--spring.profiles.active=demo'
+```
+
+Start a healthy deployment in another terminal:
+
+```bash
+APP_VERSION=1.0.0 DEPLOYMENT_ID=demo-v1 \
+  ./gradlew :echotrace-demo-order-payment:bootRun
+```
+
+Generate 100 journeys with a 5% simulated payment failure rate:
+
+```bash
+curl -X POST \
+  'http://localhost:8081/api/demo/order-to-payment?orders=100&failurePercentage=5'
+```
+
+Restart the demo as a degraded deployment and generate another cohort:
+
+```bash
+APP_VERSION=2.0.0 DEPLOYMENT_ID=demo-v2 \
+  ./gradlew :echotrace-demo-order-payment:bootRun
+
+curl -X POST \
+  'http://localhost:8081/api/demo/order-to-payment?orders=100&failurePercentage=30'
+```
+
+The collector can now show the individual journeys, funnel, violated Business
+SLO and the temporal correlation with `demo-v2`. A Docker-based one-command
+environment will be added next.
+
+### Run the complete demo with Docker
+
+Start PostgreSQL, the collector and both application deployments:
+
+```bash
+docker compose up --build -d
+```
+
+Generate the healthy and degraded cohorts and query the resulting analyses:
+
+```bash
+./scripts/run-order-payment-demo.sh
+```
+
+Services are exposed at:
+
+| Service | Address |
+| --- | --- |
+| EchoTrace Collector | `http://localhost:8080` |
+| Healthy deployment (`demo-v1`) | `http://localhost:8081` |
+| Degraded deployment (`demo-v2`) | `http://localhost:8082` |
+| PostgreSQL | `postgres:5432` inside the Docker network |
+
+Inspect container logs with `docker compose logs -f` and stop the environment
+with `docker compose down`. The PostgreSQL volume is preserved between runs;
+use `docker compose down -v` only when the demo data should be discarded.
 
 ---
 

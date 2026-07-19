@@ -1,0 +1,8 @@
+echotrace:
+  business-slos:
+    - name: checkout-conversion
+      journey-type: order.checkout
+      completion-stage: confirmed
+      objective-percentage: 93
+      window-minutes: 60
+      minimum-journeys: 20

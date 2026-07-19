@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class EventPayload {
 
-    public static final String CURRENT_SPEC_VERSION = "1.0";
+    public static final String CURRENT_SPEC_VERSION = "2.0";
 
     String specVersion;
     String eventId;
@@ -20,6 +20,10 @@ public class EventPayload {
     Instant createdAt;
     Instant observedAt;
     Map<String, Object> payload;
+    BusinessOutcome businessOutcome;
+    String serviceVersion;
+    String deploymentId;
+    String commitSha;
 
     public EventPayload(){
         this.specVersion = CURRENT_SPEC_VERSION;
@@ -61,6 +65,21 @@ public class EventPayload {
         this.payload = payload == null
                 ? Map.of()
                 : java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(payload));
+    }
+
+    public EventPayload(String specVersion, String eventId, int eventVersion,
+                        String eventName, String serviceName, String environment,
+                        String status, long durationMs, String traceId, String spanId,
+                        Instant createdAt, Instant observedAt, Map<String, Object> payload,
+                        BusinessOutcome businessOutcome, String serviceVersion,
+                        String deploymentId, String commitSha) {
+        this(specVersion, eventId, eventVersion, eventName, serviceName, environment,
+                status, durationMs, traceId, spanId, createdAt, observedAt, payload);
+        this.businessOutcome = businessOutcome == null || businessOutcome.isEmpty()
+                ? null : businessOutcome;
+        this.serviceVersion = normalize(serviceVersion);
+        this.deploymentId = normalize(deploymentId);
+        this.commitSha = normalize(commitSha);
     }
 
     private static String requireText(String value, String field) {
@@ -122,6 +141,26 @@ public class EventPayload {
         return spanId;
     }
 
+    public BusinessOutcome getBusinessOutcome() {
+        return businessOutcome;
+    }
+
+    public String getServiceVersion() {
+        return serviceVersion;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public String getCommitSha() {
+        return commitSha;
+    }
+
+    private static String normalize(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
+    }
+
     @Override
     public String toString() {
         return "EventPayload{" +
@@ -137,6 +176,10 @@ public class EventPayload {
                 ", spanId='" + spanId + '\'' +
                 ", createdAt=" + createdAt +
                 ", observedAt=" + observedAt +
+                ", businessOutcome=" + businessOutcome +
+                ", serviceVersion='" + serviceVersion + '\'' +
+                ", deploymentId='" + deploymentId + '\'' +
+                ", commitSha='" + commitSha + '\'' +
                 ", payload=" + payload +
                 '}';
     }

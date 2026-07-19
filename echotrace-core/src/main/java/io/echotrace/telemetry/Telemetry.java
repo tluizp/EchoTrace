@@ -1,5 +1,8 @@
 package io.echotrace.telemetry;
 
+import io.echotrace.model.BusinessOutcome;
+
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -21,6 +24,13 @@ public final class Telemetry {
         if (parent != null) {
             child.traceId = parent.traceId;
             child.spanId = parent.spanId;
+            child.outcomeName = parent.outcomeName;
+            child.journeyId = parent.journeyId;
+            child.journeyType = parent.journeyType;
+            child.stage = parent.stage;
+            child.reason = parent.reason;
+            child.value = parent.value;
+            child.currency = parent.currency;
         }
         stack.push(child);
         return new Scope();
@@ -68,6 +78,42 @@ public final class Telemetry {
         return context == null ? new HashMap<>() : new HashMap<>(context.attributes);
     }
 
+    public static void outcome(String name) {
+        current().outcomeName = normalize(name, "Outcome name");
+    }
+
+    public static void journey(String type, String id) {
+        current().journeyType = normalize(type, "Journey type");
+        current().journeyId = normalize(id, "Journey id");
+    }
+
+    public static void stage(String stage) {
+        current().stage = normalize(stage, "Journey stage");
+    }
+
+    public static void reason(String reason) {
+        current().reason = normalize(reason, "Outcome reason");
+    }
+
+    public static void value(BigDecimal value, String currency) {
+        if (value == null) {
+            throw new IllegalArgumentException("Business value must not be null");
+        }
+        current().value = value;
+        current().currency = normalize(currency, "Currency");
+    }
+
+    public static BusinessOutcome readBusinessOutcome() {
+        Context context = existing();
+        if (context == null) {
+            return null;
+        }
+        BusinessOutcome outcome = new BusinessOutcome(
+                context.outcomeName, context.journeyId, context.journeyType,
+                context.stage, context.reason, context.value, context.currency);
+        return outcome.isEmpty() ? null : outcome;
+    }
+
     public static void clear() {
         contexts.remove();
     }
@@ -76,6 +122,20 @@ public final class Telemetry {
         private final Map<String, Object> attributes = new HashMap<>();
         private String traceId;
         private String spanId;
+        private String outcomeName;
+        private String journeyId;
+        private String journeyType;
+        private String stage;
+        private String reason;
+        private BigDecimal value;
+        private String currency;
+    }
+
+    private static String normalize(String value, String field) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(field + " must not be blank");
+        }
+        return value.trim();
     }
 
     public static final class Scope implements AutoCloseable {
