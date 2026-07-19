@@ -15,6 +15,8 @@ import java.util.UUID;
 @Repository
 public interface EventRepository extends JpaRepository<EventEntity, UUID> {
 
+    boolean existsByEventId(String eventId);
+
     @Query(value = "SELECT " +
             "    date_trunc(:interval, created_at) as bucketTime, " +
             "    to_char( " +

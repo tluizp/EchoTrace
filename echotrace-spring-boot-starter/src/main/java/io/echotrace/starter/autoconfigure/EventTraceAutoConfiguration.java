@@ -4,9 +4,9 @@ import io.echotrace.starter.config.TelemetryProperties;
 import io.echotrace.starter.publisher.AsyncHttpEventPublisher;
 import io.echotrace.starter.publisher.LogEventPublisher;
 import io.echotrace.core.EventPublisher;
+import io.echotrace.core.EventEmitter;
 import io.echotrace.starter.interceptor.BusinessEventInterceptor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,7 +27,6 @@ public class EventTraceAutoConfiguration {
     )
     @ConditionalOnMissingBean(EventPublisher.class)
     public EventPublisher httpPublisher(TelemetryProperties properties) {
-        System.out.println("HTTP PUBLISHER ATIVADO");
         return new AsyncHttpEventPublisher(properties);
     }
 
@@ -54,9 +53,11 @@ public class EventTraceAutoConfiguration {
     }
 
     @Bean
-    public CommandLineRunner debug(EventPublisher publisher) {
-        return args -> {
-            System.out.println("Publisher ativo: " + publisher.getClass());
-        };
+    public EventEmitter eventEmitter(
+            EventPublisher publisher,
+            @Value("${spring.application.name:unknown-service}") String serviceName,
+            @Value("${spring.profiles.active:default}") String environment
+    ) {
+        return new EventEmitter(publisher, serviceName, environment);
     }
 }

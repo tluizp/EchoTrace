@@ -2,6 +2,7 @@ package io.echotrace.starter.interceptor;
 
 import io.echotrace.annotation.EchoTrace;
 import io.echotrace.core.EventPublisher;
+import io.echotrace.core.AttributeSanitizer;
 import io.echotrace.model.EventPayload;
 import io.echotrace.telemetry.Telemetry;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -36,6 +37,7 @@ public class BusinessEventInterceptor {
     private final String serviceName;
 
     private final String environment;
+    private final AttributeSanitizer sanitizer = new AttributeSanitizer();
 
     public BusinessEventInterceptor(EventPublisher publisher,
                                     @Value("${spring.application.name:unknown-service}")
@@ -50,6 +52,14 @@ public class BusinessEventInterceptor {
     @Around("@annotation(event)")
     public Object intercept(ProceedingJoinPoint pjp, EchoTrace event) throws Throwable {
 
+        Telemetry.Scope scope = Telemetry.startScope();
+        String traceId = Telemetry.getTraceId();
+        if (traceId == null) {
+            traceId = UUID.randomUUID().toString();
+            Telemetry.setTraceId(traceId);
+        }
+        String spanId = UUID.randomUUID().toString();
+        Telemetry.setSpanId(spanId);
         Instant createdAt = Instant.now();
         long start = System.nanoTime();
         Object result = null;
@@ -98,16 +108,6 @@ public class BusinessEventInterceptor {
                     );
                 }
 
-                String traceId = Telemetry.getTraceId();
-
-                if (traceId == null) {
-                    traceId = UUID.randomUUID().toString();
-                    Telemetry.setTraceId(traceId);
-                }
-
-                String spanId = UUID.randomUUID().toString();
-                Telemetry.setSpanId(spanId);
-
                 String status = error == null
                         ? "SUCCESS"
                         : "ERROR";
@@ -121,19 +121,15 @@ public class BusinessEventInterceptor {
                         traceId,
                         spanId,
                         createdAt,
-                        payloadData
+                        sanitizer.sanitize(payloadData)
                 );
-
-                System.out.println("event.name = " + event.name());
-                System.out.println("serviceName = " + serviceName);
-                System.out.println("environment = " + environment);
-                System.out.println("status = " + status);
-                System.out.println("payloadData = " + payloadData);
 
                 publisher.publish(payload);
 
             } catch (Exception telemetryError) {
                 log.error("[BusinessEvent] Telemetry failure", telemetryError);
+            } finally {
+                scope.close();
             }
         }
     }

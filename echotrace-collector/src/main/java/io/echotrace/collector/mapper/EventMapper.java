@@ -9,6 +9,9 @@ public class EventMapper {
 
         EventEntity entity = new EventEntity();
 
+        entity.setSpecVersion(payload.getSpecVersion());
+        entity.setEventId(payload.getEventId());
+        entity.setEventVersion(payload.getEventVersion());
         entity.setEventName(payload.getEventName());
         entity.setServiceName(payload.getServiceName());
         entity.setEnvironment(payload.getEnvironment());
@@ -17,6 +20,7 @@ public class EventMapper {
         entity.setTraceId(payload.getTraceId());
         entity.setSpanId(payload.getSpanId());
         entity.setCreatedAt(payload.getCreatedAt());
+        entity.setObservedAt(payload.getObservedAt());
         entity.setPayload(payload.getPayload());
 
         return entity;
