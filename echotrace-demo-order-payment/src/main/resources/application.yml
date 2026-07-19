@@ -1,0 +1,12 @@
+server:
+  port: ${DEMO_SERVER_PORT:8081}
+
+spring:
+  application:
+    name: order-payment-demo
+
+echotrace:
+  collector-url: ${ECHOTRACE_COLLECTOR_URL:http://localhost:8080}
+  service-version: ${APP_VERSION:1.0.0}
+  deployment-id: ${DEPLOYMENT_ID:demo-v1}
+  commit-sha: ${GIT_COMMIT:local}

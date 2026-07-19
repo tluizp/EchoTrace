@@ -220,6 +220,100 @@ deployment failure reasons and sample sufficiency. The cutover is inferred from
 the first event carrying the deployment ID, so the result is a temporal
 correlation signal and does not by itself prove causation.
 
+### Business SLOs and alerts
+
+Business objectives are configured in the collector:
+
+```yaml
+echotrace:
+  business-slos:
+    - name: checkout-conversion
+      journey-type: order.checkout
+      completion-stage: confirmed
+      objective-percentage: 93
+      window-minutes: 60
+      minimum-journeys: 20
+```
+
+Evaluate every configured objective at the current time or at a reproducible
+point in time:
+
+```http
+GET /api/slos/evaluations
+GET /api/slos/evaluations?end=2026-07-19T12:00:00Z
+```
+
+Evaluations are classified as `NO_DATA`, `INSUFFICIENT_DATA`, `HEALTHY` or
+`BREACHED`. A breach of at least five percentage points is `CRITICAL`; smaller
+breaches are `WARNING`. Insufficient samples never trigger an alert.
+
+## Order-to-Payment demo
+
+The `echotrace-demo-order-payment` module produces real events through the
+EchoTrace starter. It creates checkout and order events programmatically and
+instruments payment execution with `@EchoTrace`.
+
+Start the collector with the demo Business SLO after starting PostgreSQL:
+
+```bash
+./gradlew :echotrace-collector:bootRun --args='--spring.profiles.active=demo'
+```
+
+Start a healthy deployment in another terminal:
+
+```bash
+APP_VERSION=1.0.0 DEPLOYMENT_ID=demo-v1 \
+  ./gradlew :echotrace-demo-order-payment:bootRun
+```
+
+Generate 100 journeys with a 5% simulated payment failure rate:
+
+```bash
+curl -X POST \
+  'http://localhost:8081/api/demo/order-to-payment?orders=100&failurePercentage=5'
+```
+
+Restart the demo as a degraded deployment and generate another cohort:
+
+```bash
+APP_VERSION=2.0.0 DEPLOYMENT_ID=demo-v2 \
+  ./gradlew :echotrace-demo-order-payment:bootRun
+
+curl -X POST \
+  'http://localhost:8081/api/demo/order-to-payment?orders=100&failurePercentage=30'
+```
+
+The collector can now show the individual journeys, funnel, violated Business
+SLO and the temporal correlation with `demo-v2`. A Docker-based one-command
+environment will be added next.
+
+### Run the complete demo with Docker
+
+Start PostgreSQL, the collector and both application deployments:
+
+```bash
+docker compose up --build -d
+```
+
+Generate the healthy and degraded cohorts and query the resulting analyses:
+
+```bash
+./scripts/run-order-payment-demo.sh
+```
+
+Services are exposed at:
+
+| Service | Address |
+| --- | --- |
+| EchoTrace Collector | `http://localhost:8080` |
+| Healthy deployment (`demo-v1`) | `http://localhost:8081` |
+| Degraded deployment (`demo-v2`) | `http://localhost:8082` |
+| PostgreSQL | `postgres:5432` inside the Docker network |
+
+Inspect container logs with `docker compose logs -f` and stop the environment
+with `docker compose down`. The PostgreSQL volume is preserved between runs;
+use `docker compose down -v` only when the demo data should be discarded.
+
 ---
 
 ## Documentation
